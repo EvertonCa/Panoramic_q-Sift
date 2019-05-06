@@ -9,8 +9,8 @@ def SIFT(firstFrame, lastFrame, step):
   for i in range(firstFrame, lastFrame - step, step):
     sift = cv2.xfeatures2d.SIFT_create()
 
-    img1 = cv2.imread("Images/frame%d.jpg" % i)
-    img2 = cv2.imread("Images/frame%d.jpg" % (i + step))
+    img1 = cv2.imread("Images/frame%dms.jpg" % i)
+    img2 = cv2.imread("Images/frame%dms.jpg" % (i + step))
 
     kp1, des1 = sift.detectAndCompute(img1, None)
     kp2, des2 = sift.detectAndCompute(img2, None)
@@ -37,22 +37,33 @@ def SIFT(firstFrame, lastFrame, step):
     # cv2.imwrite("Resultado.png", img3)
     # plt.imshow(img3), plt.show()
 
-    return
 
-def videoInFrames(nome):
+def videoInFrames(nome, firstFrame, lastFrame, step):
+  #TODO create folder
   vidcap = cv2.VideoCapture(nome)
-  success, image = vidcap.read()
-  count = 0
-
-#TODO create folder
-  while success:
-    image = cv2.resize(image, (768, 432))
-    cv2.imwrite("ImagemSala/frame%d.jpg" % count, image)  # save frame as JPEG file
+  for i in range(firstFrame, lastFrame, step):
+    vidcap.set(cv2.CAP_PROP_POS_MSEC, i)
     success, image = vidcap.read()
-    print('Read a new frame: ', success)
-    count += 1
+    if success:
+      cv2.imwrite("Images/frame%d.jpg" % i, image)
 
-  return
+def videoInFramesThreads(nome, fps):
+  step = int(1000 / fps)
+  firstFrame = 0
+#TODO get amount of CPU
+  process = 4
+  vidcap = cv2.VideoCapture(nome)
+  vidcap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
+  lastFrame = vidcap.get(cv2.CAP_PROP_POS_MSEC)
+
+  Lim = [round(int(i * (int(lastFrame/1000) - firstFrame) / (process))) for i in range(process + 1)]
+  Lim = [round(i*1000) for i in Lim]
+  print(Lim)
+#TODO implement multiprocess
+  videoInFrames(nome, Lim[0], Lim[1]-1, step)
+  videoInFrames(nome, Lim[1], Lim[2]-1, step)
+  videoInFrames(nome, Lim[2], Lim[3]-1, step)
+  videoInFrames(nome, Lim[3], Lim[4], step)
 
 def stitching(folderDirectory):
   print("[INFO] loading images...", datetime.datetime.now())
@@ -94,9 +105,8 @@ def stitching(folderDirectory):
 # img1 = cv2.imread("Img1.jpg", cv2.IMREAD_GRAYSCALE)
 # img2 = cv2.imread("Img2.jpg", cv2.IMREAD_GRAYSCALE)
 if __name__ == '__main__':
-  videoInFrames('VideoSala.mov')
-
-  stitching('I')
+  videoInFramesThreads('Video.MOV', 2)
+  #stitching('I')
 
   """""
   firstFrame = 0
