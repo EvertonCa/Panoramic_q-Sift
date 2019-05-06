@@ -2,6 +2,7 @@ import cv2
 from imutils import paths
 import imutils
 import datetime
+import os
 
 
 def SIFT(firstFrame, lastFrame, step):
@@ -39,7 +40,6 @@ def SIFT(firstFrame, lastFrame, step):
 
 
 def videoInFrames(nome, firstFrame, lastFrame, step):
-  #TODO create folder
   vidcap = cv2.VideoCapture(nome)
   for i in range(firstFrame, lastFrame, step):
     vidcap.set(cv2.CAP_PROP_POS_MSEC, i)
@@ -47,7 +47,12 @@ def videoInFrames(nome, firstFrame, lastFrame, step):
     if success:
       cv2.imwrite("Images/frame%d.jpg" % i, image)
 
+
 def videoInFramesThreads(nome, fps):
+  try:
+    os.makedirs("Images")
+  except:
+    pass
   step = int(1000 / fps)
   firstFrame = 0
 #TODO get amount of CPU
@@ -64,6 +69,7 @@ def videoInFramesThreads(nome, fps):
   videoInFrames(nome, Lim[1], Lim[2]-1, step)
   videoInFrames(nome, Lim[2], Lim[3]-1, step)
   videoInFrames(nome, Lim[3], Lim[4], step)
+
 
 def stitching(folderDirectory):
   print("[INFO] loading images...", datetime.datetime.now())
@@ -124,4 +130,3 @@ if __name__ == '__main__':
     SIFT(Lim[i]+1, Lim[i+1], step)
 
   """""
-
