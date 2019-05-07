@@ -2,15 +2,28 @@ import cv2
 from imutils import paths
 import imutils
 import datetime
+import re
 
 
 class Stitcher:
     def __init__(self, handler):
         self.handler = handler
 
+    def atoi(self, text):
+        return int(text) if text.isdigit() else text
+
+    def natural_keys(self, text):
+        '''
+        alist.sort(key=natural_keys) sorts in human order
+        http://nedbatchelder.com/blog/200712/human_sorting.html
+        (See Toothy's implementation in the comments)
+        '''
+        return [self.atoi(c) for c in re.split(r'(\d+)', text)]
+
     def stitch(self):
         print("[INFO] loading images...", datetime.datetime.now())
-        image_paths = sorted(list(paths.list_images(self.handler.temp_directory)))
+        image_paths = list(paths.list_images(self.handler.temp_directory))
+        image_paths.sort(key=self.natural_keys)
         images = []
 
         # loop over the image paths, load each one, and add them to our

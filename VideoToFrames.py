@@ -1,4 +1,5 @@
 import cv2
+import datetime
 
 
 class VideoToFrames:
@@ -15,9 +16,10 @@ class VideoToFrames:
         vidcap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
         lastFrame = vidcap.get(cv2.CAP_PROP_POS_MSEC)
 
-        Lim = [round(int(i * (int(lastFrame / 1000) - firstFrame) / process)) for i in range(process + 1)]
+        Lim = [round(i * (int(lastFrame / 1000) - firstFrame) / process) for i in range(process + 1)]
         Lim = [round(i * 1000) for i in Lim]
-        print(Lim)
+
+        print("[INFO] converting video into frames...", datetime.datetime.now())
         # TODO implement multiprocess
         self.videoInFrames(Lim[0], Lim[1] - 1, step)
         self.videoInFrames(Lim[1], Lim[2] - 1, step)
@@ -30,5 +32,6 @@ class VideoToFrames:
         for i in range(firstFrame, lastFrame, step):
             vidcap.set(cv2.CAP_PROP_POS_MSEC, i)
             success, image = vidcap.read()
+            image = cv2.resize(image, (768, 432))
             if success:
                 cv2.imwrite(self.handler.temp_directory + "frame%d.jpg" % i, image)
