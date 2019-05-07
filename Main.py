@@ -45,7 +45,7 @@ def videoInFrames(nome, firstFrame, lastFrame, step):
     vidcap.set(cv2.CAP_PROP_POS_MSEC, i)
     success, image = vidcap.read()
     if success:
-      cv2.imwrite("Images/frame%d.jpg" % i, image)
+      cv2.imwrite("Images/frame%dms.jpg" % i, image)
 
 
 def videoInFramesThreads(nome, fps):
@@ -53,17 +53,22 @@ def videoInFramesThreads(nome, fps):
     os.makedirs("Images")
   except:
     pass
-  step = int(1000 / fps)
   firstFrame = 0
 #TODO get amount of CPU
   process = 4
   vidcap = cv2.VideoCapture(nome)
   vidcap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
   lastFrame = vidcap.get(cv2.CAP_PROP_POS_MSEC)
+  videoFps = int(vidcap.get(cv2.CAP_PROP_FPS))
 
-  Lim = [round(int(i * (int(lastFrame/1000) - firstFrame) / (process))) for i in range(process + 1)]
+  if videoFps < fps:
+    print("The chosen video has %d frames" %videoFps)
+    fps = videoFps
+
+  step = int(1000 / fps)
+  Lim = [round(i * (int(lastFrame/1000) - firstFrame) / (process)) for i in range(process + 1)]
   Lim = [round(i*1000) for i in Lim]
-  print(Lim)
+
 #TODO implement multiprocess
   videoInFrames(nome, Lim[0], Lim[1]-1, step)
   videoInFrames(nome, Lim[1], Lim[2]-1, step)
@@ -111,7 +116,7 @@ def stitching(folderDirectory):
 # img1 = cv2.imread("Img1.jpg", cv2.IMREAD_GRAYSCALE)
 # img2 = cv2.imread("Img2.jpg", cv2.IMREAD_GRAYSCALE)
 if __name__ == '__main__':
-  videoInFramesThreads('Video.MOV', 2)
+  videoInFramesThreads('Video.MOV', 1)
   #stitching('I')
 
   """""
