@@ -59,6 +59,7 @@ class Stitcher:
 
         for index2, i in enumerate(images):
             self.stitch_ten(i, index2)
+            i.clear()
             quantity = index2
 
         return quantity
@@ -81,7 +82,7 @@ class Stitcher:
         # otherwise the stitching failed, likely due to not enough keypoints)
         # being detected
         else:
-            print("data result", datetime.datetime.now())
+            print("ERROR Stitching at", datetime.datetime.now())
             print("[INFO] image stitching failed ({})".format(status))
 
     def make_panoramic(self):
