@@ -5,7 +5,7 @@ from Stitcher import Stitcher
 if __name__ == '__main__':
     handler = Handler()
     video_converter = VideoToFrames(handler)
-    video_converter.videoInFramesThreads(10)
+    video_converter.video_in_frames_threads(10)
     stitcher = Stitcher(handler)
     stitcher.make_panoramic()
 

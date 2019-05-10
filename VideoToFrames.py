@@ -1,37 +1,34 @@
 import cv2
 import datetime
+from multiprocessing import Pool
+from multiprocessing import cpu_count
 
 
 class VideoToFrames:
     def __init__(self, handler):
         self.handler = handler
 
-    def videoInFramesThreads(self, fps):
+    def video_in_frames_threads(self, fps):
         step = int(1000 / fps)
-        firstFrame = 0
-        # TODO get amount of CPU
-        process = 4
+        first_frame = 0
+        process = cpu_count()
         video_name = self.handler.find_video_name()
         vidcap = cv2.VideoCapture(self.handler.input_directory + video_name)
         vidcap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
-        lastFrame = vidcap.get(cv2.CAP_PROP_POS_MSEC)
+        last_frame = int(vidcap.get(cv2.CAP_PROP_POS_MSEC))
 
-        Lim = [round(i * (int(lastFrame / 1000) - firstFrame) / process) for i in range(process + 1)]
-        Lim = [round(i * 1000) for i in Lim]
+
+        all_frames = [i for i in range(first_frame, last_frame, step)]
 
         print("[INFO] converting video into frames...", datetime.datetime.now())
-        # TODO implement multiprocess
-        self.videoInFrames(Lim[0], Lim[1] - 1, step)
-        self.videoInFrames(Lim[1], Lim[2] - 1, step)
-        self.videoInFrames(Lim[2], Lim[3] - 1, step)
-        self.videoInFrames(Lim[3], Lim[4], step)
+        with Pool(process) as p:
+            p.map(self.video_in_frames, all_frames, process)
 
-    def videoInFrames(self, firstFrame, lastFrame, step):
+    def video_in_frames(self, frame):
         video_name = self.handler.find_video_name()
         vidcap = cv2.VideoCapture(self.handler.input_directory + video_name)
-        for i in range(firstFrame, lastFrame, step):
-            vidcap.set(cv2.CAP_PROP_POS_MSEC, i)
-            success, image = vidcap.read()
-            image = cv2.resize(image, (768, 432))
-            if success:
-                cv2.imwrite(self.handler.temp_directory + "frame%d.jpg" % i, image)
+        vidcap.set(cv2.CAP_PROP_POS_MSEC, frame)
+        success, image = vidcap.read()
+        image = cv2.resize(image, (768, 432))
+        if success:
+            cv2.imwrite(self.handler.temp_directory + "frame%d.jpg" % frame, image)
