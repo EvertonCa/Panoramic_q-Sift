@@ -31,40 +31,33 @@ class Stitcher:
         counter = 0
         index = 0
         temp = []
+        start_images = []
+        stitched = None
+
+        print("[INFO] stitching images...", datetime.datetime.now())
         for imagePath in image_paths:
             image = cv2.imread(imagePath)
-            if counter < 10:
-                temp.append(image)
+            if len(start_images) is 20:
+                stitched = self.stitch_two(start_images)
+                cv2.imwrite(self.handler.temp_directory + "Result.jpg", stitched)
+                start_images.clear()
+            if counter < 20:
+                start_images.append(image)
                 counter += 1
             else:
-                counter = 1
-                index += 1
-                temp2 = temp.copy()
-                images.append(temp2)
-                temp.clear()
+                temp.append(stitched)
                 temp.append(image)
-
-        if len(temp) is not 0:
-            temp2 = temp.copy()
-            images.append(temp2)
-            temp.clear()
+                new_stitched = self.stitch_two(temp)
+                temp.clear()
+                cv2.imwrite(self.handler.temp_directory + "Result_%d.jpg" % index, new_stitched)
+                stitched = new_stitched.copy()
+            index += 1
 
         self.handler.clear_temp()
 
-        # initialize OpenCV's image sticher object and then perform the image
-        # stitching
-        print("[INFO] stitching images...", datetime.datetime.now())
+        cv2.imwrite(self.handler.temp_directory + "Result.jpg", stitched)
 
-        quantity = 0
-
-        for index2, i in enumerate(images):
-            self.stitch_ten(i, index2)
-            i.clear()
-            quantity = index2
-
-        return quantity
-
-    def stitch_ten(self, images, index):
+    def stitch_two(self, images):
         stitcher = cv2.createStitcher() if imutils.is_cv3() else cv2.Stitcher_create()
 
         status, stitched = stitcher.stitch(images)
@@ -73,7 +66,7 @@ class Stitcher:
         if status == 0:
             print("Stitching Successful at ", datetime.datetime.now())
             # write the output stitched image to disk
-            cv2.imwrite(self.handler.temp_directory + "Result_%d.jpg" % index, stitched)
+            # cv2.imwrite(self.handler.temp_directory + "Result_%d.jpg" % index, stitched)
 
             # display the output stitched image to our screen
             # cv2.imshow("Stitched", stitched)
@@ -84,6 +77,8 @@ class Stitcher:
         else:
             print("ERROR Stitching at", datetime.datetime.now())
             print("[INFO] image stitching failed ({})".format(status))
+
+        return stitched
 
     def make_panoramic(self):
         size = 11

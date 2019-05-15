@@ -1,15 +1,17 @@
 from Handler import Handler
 from VideoToFrames import VideoToFrames
-from Stitcher import Stitcher
+from Panorama import Stitcher
+import cv2
+import time
 
 if __name__ == '__main__':
+    fps = 1
     handler = Handler()
     video_converter = VideoToFrames(handler)
-    #video_converter.video_in_frames_threads(10)
-    intervalo_menor = 4000
-    #intervalo_maior = 7000
-    #video_converter.remove_frames_sequentially(intervalo_menor, intervalo_maior)
-    video_converter.add_new_frames(intervalo_menor, 2)
-    stitcher = Stitcher(handler)
-    stitcher.make_panoramic()
+    (first_frame, last_frame) = video_converter.video_in_frames_threads(fps)
+    stitcher = Stitcher()
+    start = time.time()
+    result = stitcher.stitch(first_frame, last_frame, fps)
+    print("Time stiching = {0:.5f}s".format(time.time() - start))
+    cv2.imwrite("result.jpg", result)
 
