@@ -9,6 +9,7 @@ if __name__ == '__main__':
     handler = Handler()
     video_converter = VideoToFrames(handler)
     (first_frame, last_frame) = video_converter.video_in_frames_threads(fps)
+    #(first_frame, last_frame) = (0, 12000)
     stitcher = Stitcher()
     start = time.time()
     result = stitcher.stitch(first_frame, last_frame, fps)
